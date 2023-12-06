@@ -82,10 +82,36 @@ def edit_rating(cur, user_id):
         return 0
 
 
-get_filter_keyword():
+def get_filter_keyword():
+
+    # validate user input
     while True:
-        filter_keyword = input("Enter 1 to filter by flavor, 2 to filter by chain: ")
-        if
+        filter_keyword = input("Enter\n   1 | filter by flavor\n   2 | filter by chain\n")
+        if filter_keyword not in ['1', '2']:
+            print("Invalid input")
+        else:
+            # get filter criteria
+            if filter_keyword == '1':
+                return 'flavor_name'
+            elif filter_keyword == '2':
+                return 'brand_name'
+
+
+def get_filter_criteria(cur, filter_keyword):
+
+    query = f"SELECT DISTINCT {filter_keyword}\
+        FROM flavors \
+        JOIN chains ON flavors.chain_ID = chains.chain_ID ORDER BY {filter_keyword};"
+    cur.execute(query)
+    results = [x[filter_keyword] for x in cur.fetchall()]
+    print("Filter options: ")
+    print(', '.join(map(str, results)))
+
+    # ask for user input
+    while True:
+        filter_criteria = input("Enter a filter from the above: ")
+        if filter_criteria in results:
+            return filter_criteria
 
 
 def submit_rating(cur, user_id):
@@ -98,18 +124,21 @@ def submit_rating(cur, user_id):
         else:
             break
 
-    if rating_filter in ['y', 'n']:
+    # get keyword and criteria for filter
+    if rating_filter == 'y':
         filter_keyword = get_filter_keyword()
-
-    filter_keyword
-    filter_query
-
+        filter_criteria = get_filter_criteria(cur, filter_keyword)
+        query_clause = f" HAVING {filter_keyword} = '{filter_criteria}' "
+    else:
+        query_clause = ''
 
     while True:
         # show flavors and companies
         query = "SELECT flavor_ID, flavor_name, ice_cream_type, brand_name\
             FROM flavors \
-            JOIN chains ON flavors.chain_ID = chains.chain_ID ORDER BY brand_name, flavor_name;"
+            JOIN chains ON flavors.chain_ID = chains.chain_ID" + \
+            query_clause + ";"
+        print(query)
         cur.execute(query)
         results = [x for x in cur.fetchall()]
         print("All flavors: ")
@@ -133,6 +162,9 @@ def submit_rating(cur, user_id):
             # ask for components of rating
             rating_date = input("Enter date of rating (YYYY-MM-DD): ")
             stars = input("Enter number of stars (1-5): ")
+            # check that stars input is valid
+            while stars not in ['1', '2', '3', '4', '5']:
+                stars = input("Enter number of stars (1-5): ")
             remarks = input("Enter any remarks: ")
 
             # Call procedure insert_rating

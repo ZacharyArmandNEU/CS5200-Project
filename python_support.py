@@ -17,29 +17,89 @@ def main_menu(cur, user_id):
                             "   4 | edit review\n   5 | edit user info\n   6 | quit\n")
 
         # run view network utility
-        if (user_choice == '1') or (user_choice.lower() == "view"):
-            view_menu(cur, user_id)
-        # run rating utility
-        elif (user_choice == '2') or (user_choice.lower() == "submit rating"):
-            submit_rating(cur, user_id)
-        # run searh network utility
-        elif (user_choice == '3') or (user_choice.lower() == "search"):
-            user_id = register_user(cur)
-        # run edit rating utility
-        elif (user_choice == '4') or (user_choice.lower() == "edit review"):
-            edit_rating(cur, user_id)
-        # run edit user info utility
-        elif (user_choice == '5') or (user_choice.lower() == "edit user"):
-            edit_user(cur, user_id)
-        # quit system
-        elif (user_choice == '6') or (user_choice.lower() == "quit"):
-            print("Exiting application")
-            sys.exit()
-        else:
-            print("Invalid choice")
+        match user_choice.lower():
+            case '1' | 'explore':
+                view_menu(cur, user_id)
+            case '2' | 'submit rating':
+                submit_rating(cur, user_id)
+            case '3' | 'search':
+                search_menu(cur, user_id)
+            case '4' | 'edit review':
+                edit_rating(cur, user_id)
+            case '5' | 'edit user':
+                edit_user(cur, user_id)
+            case '6' | 'quit':
+                print("Exiting application")
+                sys.exit()
+            case _:
+                print("Invalid choice")
 
 
 
+def search_menu(cur, user_id):
+
+    # print main message
+    while True:
+        # ask user for their choice
+        user_choice = input("Enter to search:\n   1 | flavors by company\n   2 | companies by flavor\n   3 | ratings "
+                            "by company\n   4 | ratings by flavor\n   5 | flavors by base\n   6 | flavors by mix in\n "
+                            "  7 | quit to menu\n")
+        # run search network utility
+        match user_choice.lower():
+            case '1':
+                chain_id = validate_company_choice(cur)
+                # searh....
+            case '2':
+                flavor_name = validate_flavor_choice(cur)
+            case '3':
+                chain_id = validate_company_choice(cur)
+            case '4':
+                flavor_name = validate_flavor_choice(cur)
+            case '5':
+                pass ###############for now.......
+            case '6':
+                pass  ###############for now.......
+            case '7' | 'quit':
+                return 0
+            case _:
+                print("Invalid choice")
+
+def validate_company_choice(cur):
+
+    query = f"SELECT chain_ID, brand_name FROM chains;"
+    cur.execute(query)
+
+    results = [x for x in cur.fetchall()]
+    chains = [str(x.get('chain_ID')) for x in results]
+    formatted_entries = [f"{x.get('brand_name')}: {x.get('chain_ID')}" for x in results]
+    # Print each entry on a new line
+    print("Brand name: chain_ID")
+    for formatted_entry in formatted_entries:
+        print(formatted_entry)
+
+    # ask for user input
+    while True:
+        chain_id = input("Enter a chain_ID from the above: ")
+        if chain_id in chains:
+            return chain_id
+
+
+def validate_flavor_choice(cur):
+
+    query = f"SELECT DISTINCT flavor_name FROM flavors;"
+    cur.execute(query)
+
+    results = [x.get('flavor_name') for x in cur.fetchall()]
+    # Print each entry on a new line
+    print("Flavors: ")
+    for each in results:
+        print(each)
+
+    # ask for user input
+    while True:
+        flavor_name = input("Enter a flavor from the above: ")
+        if flavor_name in results:
+            return flavor_name
 
 
 
