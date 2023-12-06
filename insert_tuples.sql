@@ -23,7 +23,7 @@ INSERT INTO chains VALUES (NULL, 'J.P. Licks'), (NULL, 'Ben and Jerry\'s'), (NUL
 INSERT INTO base VALUES ('French Vanilla', 'Uses egg yolks, making it distinct fron Vanilla Bean'), ('Vanilla', 'Standard vanilla, no egg yolk'), ('Chocolate', NULL), ('Strawberry', NULL), ('Pistachio', NULL), ('Maple', NULL), ('Cherry', NULL), ('Mint', NULL);
 
 -- Insert mixins
-INSERT INTO mixin VALUES ('Caramel', 'Caramel swirl'), ('Walnuts', 'Chopped walnuts'), ('Chocolate Chip', NULL), ('Cookie Dough', 'Chunks of cookie dough'), ('Cherries', 'Chunks of cherry pieces'), ('Chocolate Chip Cookie', NULL);
+INSERT INTO mixin VALUES ('Caramel', 'Caramel swirl'), ('Walnuts', 'Chopped walnuts'), ('Chocolate Chip', NULL), ('Cookie Dough', 'Chunks of cookie dough'), ('Cherries', 'Chunks of cherry pieces'), ('Chocolate Chip Cookie', NULL), ('Fluff', 'A fluffy marshmellow swirl');
 
 -- Insert flavors
 INSERT INTO flavors VALUES (NULL, 'Vanilla', 'Hard Serve', 1, 1),
@@ -40,28 +40,43 @@ INSERT INTO flavors VALUES (NULL, 'Vanilla', 'Hard Serve', 1, 1),
     (NULL, 'Pistacio', 'Gelato', 1, 4),
     (NULL, 'Rich Vanilla', 'Hard Serve', 1, 4),
     (NULL, 'Strawberry', 'Hard Serve', 1, 5),
-    (NULL, 'Grasshopper', 'Hard Serve', 0, 5);
+    (NULL, 'Grasshopper', 'Hard Serve', 0, 5),
+    (NULL, 'Phish Food', 'Hard Serve', 1, 2);
 
--- Connect flavors and bases
-INSERT INTO flavor_base VALUES 
-('6','Cherry'),
-('8','Chocolate'),
-('2','Chocolate'),
-('3','Vanilla'),
-('15','Mint'),
-('5','Maple'),
-('12','Pistacio'),
-('13','French Vanilla'),
-('14','Strawberry'),
-('7','Chocolate'),
-('7','Vanilla'),
-('1','Vanilla'),
-('9','Vanilla'),
-('11','Vanilla'),
-('4','Vanilla'),
-('10','Vanilla');
+-- ratings
+CALL insert_rating(1, 4, '2020-12-12', 4, NULL);
+CALL insert_rating(1, 1, '2020-12-12', 1, "Not great");
+CALL insert_rating(1, 6, '2020-12-12', 3, NULL);
 
--- Connect flavors and mixins
 
--- Insert ratings
+INSERT INTO flavor_base VALUES
+-- (1, 'Vanilla'),
+(2, 'Chocolate'),
+(3, 'Vanilla'),
+(4, 'Vanilla'),
+(5, 'Maple'),
+(6, 'Cherry'),
+(7, 'Vanilla'),
+(7, 'Chocolate'),
+(8, 'Chocolate'),
+(9, 'Vanilla'),
+(10, 'Vanilla'),
+(11, 'Vanilla'),
+(12, 'Pistacio'),
+(13, 'French Vanilla'),
+(14, 'Strawberry'),
+(15, 'Mint'),
+(16, 'Chocolate');
 
+
+
+INSERT INTO flavor_mixin VALUES
+(3, 'Chocolate Chip'),
+(5, 'Walnuts'),
+(6, 'Cherries'),
+(6, 'Chocolate Chip'),
+(15, 'Chocolate Chip Cookie'),
+(15, 'Chocolate Chip'),
+(16, 'Caramel'),
+(16, 'Fluff'),
+(16, 'Chocolate Chip');

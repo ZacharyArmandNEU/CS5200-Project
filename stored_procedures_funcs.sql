@@ -50,11 +50,6 @@ DELIMITER ;
 
 
 
-
-
-
-
-
 -- Update user information
 DROP PROCEDURE IF EXISTS update_user;
 DELIMITER $$
@@ -126,7 +121,7 @@ BEGIN
 	-- validate that combination of userID, flavorID doesn't already exist
     IF EXISTS(SELECT user_ID, flavor_ID FROM ratings where user_ID = input_user_id AND flavor_ID = rating_flav_ID) THEN
 		SIGNAL SQLSTATE '23000'
-        SET MESSAGE_TEXT = 'Rating for this combindation of userID and flavorID already exist.';
+        SET MESSAGE_TEXT = 'Rating for this combination of userID and flavorID already exist.';
 	ELSE
 		
 		SELECT chain_ID INTO new_brand_ID
@@ -139,5 +134,74 @@ BEGIN
 	END IF;
 END $$
 DELIMITER ;
+
+
+
+
+-- search for flavors by mixin
+-- accepts a mixin name as input
+-- also accepts 'None' as an input
+DROP PROCEDURE IF EXISTS flavors_by_mixin;
+
+DELIMITER $$
+CREATE PROCEDURE flavors_by_mixin(in_mixin_name VARCHAR(64))
+BEGIN
+	IF (in_mixin_name = 'None') OR (in_mixin_name IS NULL) THEN 
+		SELECT 
+			flavors.flavor_name,
+			chains.brand_name,
+			GROUP_CONCAT(flavor_base.base_name SEPARATOR ', ') AS base
+		FROM flavor_mixin
+		RIGHT JOIN flavors ON flavor_mixin.flavor_ID = flavors.flavor_ID
+		LEFT JOIN flavor_base ON flavors.flavor_ID = flavor_base.flavor_ID
+		JOIN chains ON flavors.chain_ID = chains.chain_ID
+		WHERE flavor_mixin.mixin_name IS NULL
+		GROUP BY flavors.flavor_ID, chains.brand_name;
+    ELSEIF NOT EXISTS(SELECT mixin_name FROM mixin WHERE mixin_name = in_mixin_name) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Mixin not found';
+    ELSE
+		SELECT flavors.flavor_name,
+			chains.brand_name,
+			GROUP_CONCAT(flavor_base.base_name SEPARATOR ', ') AS base
+		FROM flavor_mixin
+		JOIN mixin ON flavor_mixin.mixin_name = mixin.mixin_name
+		JOIN flavors ON flavor_mixin.flavor_ID = flavors.flavor_ID
+		JOIN chains ON flavors.chain_ID = chains.chain_ID
+		LEFT JOIN flavor_base ON flavor_mixin.flavor_ID = flavor_base.flavor_ID
+		WHERE flavor_mixin.mixin_name = in_mixin_name -- input here
+		GROUP BY flavor_name, chains.brand_name
+		ORDER BY chains.brand_name;  
+	END IF;    
+END $$
+DELIMITER ;
+
+
+-- Searches for flavors by base
+-- Every flavor has a base, so no need to test for NULL input
+DROP PROCEDURE IF EXISTS flavors_by_base;
+
+DELIMITER $$
+CREATE PROCEDURE flavors_by_base(IN in_base_name VARCHAR(64))
+BEGIN
+    
+    IF NOT EXISTS(SELECT base_name FROM base WHERE base_name = in_base_name) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Base not found';
+    ELSE
+		SELECT flavors.flavor_name,
+			chains.brand_name,
+			GROUP_CONCAT(IFNULL(flavor_mixin.mixin_name, "None") SEPARATOR ', ') AS mixins
+		FROM flavor_base
+		JOIN base ON flavor_base.base_name = base.base_name
+		JOIN flavors ON flavor_base.flavor_ID = flavors.flavor_ID
+		JOIN chains ON flavors.chain_ID = chains.chain_ID
+		LEFT JOIN flavor_mixin ON flavor_base.flavor_ID = flavor_mixin.flavor_ID
+		WHERE flavor_base.base_name = in_base_name -- input here
+		GROUP BY flavor_name, chains.brand_name
+		ORDER BY chains.brand_name;    END IF;    
+END $$
+DELIMITER ;
+
 
 

@@ -56,16 +56,20 @@ def edit_rating(cur, user_id):
         print("You have not left any ratings")
         return 0
 
+
     # ask which ID to edit
     rate_to_edit = input("Which review ID would you like to edit? ")
     while rate_to_edit not in valid_IDs:
         print("Invalid ID")
         rate_to_edit = input("Which review ID would you like to edit? ")
 
+
+
     # ask what aspect of review to edit
     while True:
         # ask user for their choice
-        user_choice = input("Enter:\n   1 to edit stars\n   2 to edit remarks\n   3 to return to menu\n")
+        user_choice = input("Enter:\n   1 | edit stars\n   2 | edit remarks\n   3 | delete review\n   "
+                            "4 | return to menu\n")
         # get user input
         new_stars, new_remarks, = None, None
         match user_choice.lower():
@@ -73,7 +77,12 @@ def edit_rating(cur, user_id):
                 new_stars = input("Enter new rating (1-5): ")
             case '2' | 'remarks':
                 new_remarks = input("Enter new remarks: ")
-            case '3' | 'quit':
+            case '3' | 'delete':
+                query = f"DELETE FROM ratings WHERE rating_ID = {rate_to_edit}"
+                cur.execute(query)
+                print(f"Review {rate_to_edit} deleted.")
+                return 0
+            case '4' | 'quit':
                 return 0
 
         # update user information (procedure deals with NULL values)

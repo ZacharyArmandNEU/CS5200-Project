@@ -5,6 +5,7 @@ import sys
 from home_menu import home_screen
 from view_functions import view_menu, view_user_rating
 from edit_functions import edit_user, edit_rating, submit_rating
+from search_functions import search_menu
 
 
 def main_menu(cur, user_id):
@@ -13,8 +14,8 @@ def main_menu(cur, user_id):
     print("Welcome. Please choose an option.")
     while True:
         # ask user for their choice
-        user_choice = input("Enter:\n   1 | explore network\n   2 | submit rating\n   3 | search flavors, companies, ratings\n"
-                            "   4 | edit review\n   5 | edit user info\n   6 | quit\n")
+        user_choice = input("Enter:\n   1 | explore network\n   2 | submit rating\n   3 | search flavors, companies, "
+                            "ratings\n   4 | edit review\n   5 | edit user info\n   6 | quit\n")
 
         # run view network utility
         match user_choice.lower():
@@ -33,73 +34,6 @@ def main_menu(cur, user_id):
                 sys.exit()
             case _:
                 print("Invalid choice")
-
-
-
-def search_menu(cur, user_id):
-
-    # print main message
-    while True:
-        # ask user for their choice
-        user_choice = input("Enter to search:\n   1 | flavors by company\n   2 | companies by flavor\n   3 | ratings "
-                            "by company\n   4 | ratings by flavor\n   5 | flavors by base\n   6 | flavors by mix in\n "
-                            "  7 | quit to menu\n")
-        # run search network utility
-        match user_choice.lower():
-            case '1':
-                chain_id = validate_company_choice(cur)
-                # searh....
-            case '2':
-                flavor_name = validate_flavor_choice(cur)
-            case '3':
-                chain_id = validate_company_choice(cur)
-            case '4':
-                flavor_name = validate_flavor_choice(cur)
-            case '5':
-                pass ###############for now.......
-            case '6':
-                pass  ###############for now.......
-            case '7' | 'quit':
-                return 0
-            case _:
-                print("Invalid choice")
-
-def validate_company_choice(cur):
-
-    query = f"SELECT chain_ID, brand_name FROM chains;"
-    cur.execute(query)
-
-    results = [x for x in cur.fetchall()]
-    chains = [str(x.get('chain_ID')) for x in results]
-    formatted_entries = [f"{x.get('brand_name')}: {x.get('chain_ID')}" for x in results]
-    # Print each entry on a new line
-    print("Brand name: chain_ID")
-    for formatted_entry in formatted_entries:
-        print(formatted_entry)
-
-    # ask for user input
-    while True:
-        chain_id = input("Enter a chain_ID from the above: ")
-        if chain_id in chains:
-            return chain_id
-
-
-def validate_flavor_choice(cur):
-
-    query = f"SELECT DISTINCT flavor_name FROM flavors;"
-    cur.execute(query)
-
-    results = [x.get('flavor_name') for x in cur.fetchall()]
-    # Print each entry on a new line
-    print("Flavors: ")
-    for each in results:
-        print(each)
-
-    # ask for user input
-    while True:
-        flavor_name = input("Enter a flavor from the above: ")
-        if flavor_name in results:
-            return flavor_name
 
 
 

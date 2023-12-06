@@ -104,7 +104,7 @@ CREATE TABLE flavor_base
     CONSTRAINT base_to_flavor_fk
 		FOREIGN KEY (base_name)
         REFERENCES base(base_name)
-        ON DELETE RESTRICT
+        ON DELETE CASCADE
         ON UPDATE CASCADE
 );
 
@@ -122,7 +122,7 @@ CREATE TABLE flavor_mixin
     CONSTRAINT mixin_to_flavor_fk
 		FOREIGN KEY (mixin_name)
         REFERENCES mixin(mixin_name)
-        ON DELETE RESTRICT
+        ON DELETE CASCADE
         ON UPDATE CASCADE
 );
 
