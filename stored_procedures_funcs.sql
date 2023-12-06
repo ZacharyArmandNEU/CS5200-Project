@@ -1,6 +1,6 @@
 
 
-
+-- register user
 DROP PROCEDURE IF EXISTS create_user;
 DELIMITER $$
 CREATE PROCEDURE create_user( 
@@ -46,4 +46,63 @@ BEGIN
 	END IF;
 END $$ 
 DELIMITER ;
+
+
+
+
+
+
+
+
+
+-- Update user information
+DROP PROCEDURE IF EXISTS update_user;
+DELIMITER $$
+CREATE PROCEDURE update_user(
+	IN intput_user_ID INT,
+    IN new_email VARCHAR(32),
+    IN new_first VARCHAR(32),
+    IN new_last VARCHAR(32)
+)
+BEGIN
+    -- Update email if new_email is not NULL
+    IF new_email IS NOT NULL THEN
+        UPDATE users SET email = new_email WHERE intput_user_ID = user_ID;
+    END IF;
+    -- Update first name if new_first is not NULL
+    IF new_first IS NOT NULL THEN
+        UPDATE users SET first_name = new_first WHERE intput_user_ID = user_ID;
+    END IF;
+    -- Update last name if new_last is not NULL
+    IF new_last IS NOT NULL THEN
+        UPDATE users SET last_name = new_last WHERE intput_user_ID = user_ID;
+    END IF;
+END $$
+DELIMITER ;
+
+
+
+
+
+-- Update rating for user
+DROP PROCEDURE IF EXISTS update_ratings;
+DELIMITER $$
+CREATE PROCEDURE update_ratings(
+	IN intput_user_ID INT,
+    IN new_stars INT,
+    IN new_remarks TEXT
+)
+BEGIN
+    -- Update stars if new_stars is not NULL
+    IF new_stars IS NOT NULL THEN
+        UPDATE ratings SET stars = new_stars WHERE intput_user_ID = user_ID;
+    END IF;
+    -- Update remarks if new_remarks is not NULL
+    IF new_remarks IS NOT NULL THEN
+        UPDATE ratings SET remarks = new_remarks WHERE intput_user_ID = user_ID;
+    END IF;
+END $$
+DELIMITER ;
+
+
 
