@@ -1,5 +1,5 @@
 import pymysql
-
+from view_functions import view_user_rating
 
 
 def edit_user(cur, user_id):
@@ -43,18 +43,8 @@ def edit_rating(cur, user_id):
     # make sure user_id is integer
     user_id = int(user_id)
 
-    # print ratings for user
-    query = f"SELECT rating_ID, rating_date, stars, remarks, flavor_name, brand_name\
-        FROM ratings\
-        JOIN chains ON chains.chain_ID = ratings.brand\
-        JOIN flavors ON flavors.flavor_ID = ratings.flavor_ID WHERE user_ID = {user_id};"
-    cur.execute(query)
-    rows = cur.fetchall()
-    print("Your ratings: ")
-    for row in rows:
-        for key, value in row.items():
-            print(f'{key}: {value}')
-        print("")
+    # print all ratings by that user
+    view_user_rating(cur, user_id)
 
     # fetch all valid rating IDs from user for data validation
     query = f"SELECT rating_ID FROM ratings WHERE user_ID = {user_id};"
@@ -92,8 +82,28 @@ def edit_rating(cur, user_id):
         return 0
 
 
+get_filter_keyword():
+    while True:
+        filter_keyword = input("Enter 1 to filter by flavor, 2 to filter by chain: ")
+        if
+
 
 def submit_rating(cur, user_id):
+
+    # ask for filter criteria
+    while True:
+        rating_filter = input("Would you like to filter ratings? (Y/N): ").lower()
+        if rating_filter not in ['y', 'n']:
+            print("Invalid Input")
+        else:
+            break
+
+    if rating_filter in ['y', 'n']:
+        filter_keyword = get_filter_keyword()
+
+    filter_keyword
+    filter_query
+
 
     while True:
         # show flavors and companies

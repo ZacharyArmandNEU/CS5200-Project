@@ -3,7 +3,7 @@ import sys
 
 # my files to support this project
 from home_menu import home_screen
-from view_functions import view_menu
+from view_functions import view_menu, view_user_rating
 from edit_functions import edit_user, edit_rating, submit_rating
 
 
@@ -13,8 +13,8 @@ def main_menu(cur, user_id):
     print("Welcome. Please choose an option.")
     while True:
         # ask user for their choice
-        user_choice = input("Enter:\n   1 to view network\n   2 to submit rating\n   3 to search network\n"
-                            "   4 to edit review\n   5 to edit user info\n   6 to quit\n")
+        user_choice = input("Enter:\n   1 | explore network\n   2 | submit rating\n   3 | search flavors, companies, ratings\n"
+                            "   4 | edit review\n   5 | edit user info\n   6 | quit\n")
 
         # run view network utility
         if (user_choice == '1') or (user_choice.lower() == "view"):
