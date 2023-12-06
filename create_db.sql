@@ -57,6 +57,7 @@ CREATE TABLE ratings
     flavor_ID INT NOT NULL, 
     brand INT NOT NULL,
     user_ID INT,
+    UNIQUE(user_ID, flavor_ID), -- no more than one rating per user per flavor
     CONSTRAINT ratings_flavor_fk
 		FOREIGN KEY (flavor_ID)
         REFERENCES flavors(flavor_ID)

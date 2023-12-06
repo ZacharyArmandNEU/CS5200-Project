@@ -106,3 +106,38 @@ DELIMITER ;
 
 
 
+
+
+-- Insert new rating
+-- Works in conjunction with trigger "chain_update_after_rating"
+DROP PROCEDURE IF EXISTS insert_rating;
+DELIMITER $$
+CREATE PROCEDURE insert_rating( 
+    IN input_user_id INT,
+    IN rating_flav_ID INT,
+    IN rating_date DATE,
+    IN rating_stars INT,
+    IN rating_remarks TEXT
+) 
+BEGIN
+	
+    DECLARE new_brand_ID INT;
+    
+	-- validate that combination of userID, flavorID doesn't already exist
+    IF EXISTS(SELECT user_ID, flavor_ID FROM ratings where user_ID = input_user_id AND flavor_ID = rating_flav_ID) THEN
+		SIGNAL SQLSTATE '23000'
+        SET MESSAGE_TEXT = 'Rating for this combindation of userID and flavorID already exist.';
+	ELSE
+		
+		SELECT chain_ID INTO new_brand_ID
+		FROM flavors
+		WHERE flavor_ID = rating_flav_ID; 
+
+
+		INSERT INTO ratings 
+		VALUES (NULL, rating_date, rating_stars, rating_remarks, rating_flav_ID, new_brand_ID, input_user_id);
+	END IF;
+END $$
+DELIMITER ;
+
+
