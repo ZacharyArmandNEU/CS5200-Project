@@ -1,9 +1,7 @@
 import pymysql
-import sys
 
 
-
-def search_menu(cur, user_id):
+def search_menu(cur):
 
     # print main message
     while True:
@@ -33,7 +31,6 @@ def search_menu(cur, user_id):
                 return 0
             case _:
                 print("Invalid choice")
-
 
 
 def flavors_by(cur, base_or_mixin):
@@ -113,7 +110,6 @@ def flavor_search(cur, search_criteria, search_term):
         cur.execute(query)
         filter_term = cur.fetchone()['brand_name']
 
-
     query = f"SELECT flavor_name, ice_cream_type, in_stock FROM flavors WHERE {search_criteria} = {search_term};"
     cur.execute(query)
 
@@ -128,10 +124,10 @@ def flavor_search(cur, search_criteria, search_term):
 
 def company_search(cur, search_criteria, search_term):
 
-    query = f"SELECT DISTINCT brand_name FROM flavors JOIN chains ON chains.chain_ID = flavors.chain_ID WHERE {search_criteria} = '{search_term}';"
+    query = f"SELECT DISTINCT brand_name FROM flavors JOIN chains ON chains.chain_ID = flavors.chain_ID WHERE {search_criteria} = '{search_term}'; "
     cur.execute(query)
 
-    #print(f"All flavors by {filter_term}:")
+    # print(f"All flavors by {filter_term}:")
     results = [x.get('brand_name') for x in cur.fetchall()]
     # Print each entry on a new line
     print(f"Chains carrying {search_term}:")
@@ -176,4 +172,3 @@ def validate_flavor_choice(cur):
         flavor_name = input("Enter a flavor from the above: ")
         if flavor_name in results:
             return flavor_name
-

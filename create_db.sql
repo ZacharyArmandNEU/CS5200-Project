@@ -37,7 +37,6 @@ CREATE TABLE flavors
 	flavor_ID INT AUTO_INCREMENT PRIMARY KEY,
 	flavor_name VARCHAR(64) NOT NULL,
     ice_cream_type ENUM("Hard Serve", "Gelato", "Sherbet", "Sorbet", "Frozen Yogurt", "Soft Serve", "Other"),
-    in_stock BOOLEAN,
     chain_ID INT,
     UNIQUE(flavor_name, ice_cream_type, chain_id),
     CONSTRAINT flavor_chain_fk
@@ -99,7 +98,7 @@ CREATE TABLE flavor_base
     CONSTRAINT flavor_to_base_fk
 		FOREIGN KEY (flavor_ID)
         REFERENCES flavors(flavor_ID)
-        ON DELETE RESTRICT
+        ON DELETE CASCADE
         ON UPDATE CASCADE,
     CONSTRAINT base_to_flavor_fk
 		FOREIGN KEY (base_name)
@@ -117,7 +116,7 @@ CREATE TABLE flavor_mixin
     CONSTRAINT flavor_to_mixin_fk
 		FOREIGN KEY (flavor_ID)
         REFERENCES flavors(flavor_ID)
-        ON DELETE RESTRICT
+        ON DELETE CASCADE
         ON UPDATE CASCADE,
     CONSTRAINT mixin_to_flavor_fk
 		FOREIGN KEY (mixin_name)

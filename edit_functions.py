@@ -8,8 +8,12 @@ def edit_user(cur, user_id):
     user_id = int(user_id)
 
     # print user information for user
-    query = "SELECT * FROM users WHERE user_ID = user_id;"
-    cur.execute(query)
+    try:
+        query = f"CALL user_information({user_id});"
+        cur.execute(query)
+    except pymysql.err.OperationalError:
+        print("Passed user does not exist")
+        return None
     rows = cur.fetchone()
     print("User information")
     for key, value in rows.items():
@@ -38,7 +42,6 @@ def edit_user(cur, user_id):
         return 0
 
 
-
 def edit_rating(cur, user_id):
     # make sure user_id is integer
     user_id = int(user_id)
@@ -47,19 +50,18 @@ def edit_rating(cur, user_id):
     view_user_rating(cur, user_id)
 
     # fetch all valid rating IDs from user for data validation
-    query = f"SELECT rating_ID FROM ratings WHERE user_ID = {user_id};"
+    query = f"CALL rating_id_user('{user_id}');"
     cur.execute(query)
-    valid_IDs = [str(x.get("rating_ID")) for x in cur.fetchall()]
+    valid_ids = [str(x.get("rating_ID")) for x in cur.fetchall()]
 
     # check first if they have any reviews
-    if len(valid_IDs) == 0:
+    if len(valid_ids) == 0:
         print("You have not left any ratings")
-        return 0
-
+        return None
 
     # ask which ID to edit
     rate_to_edit = input("Which review ID would you like to edit? ")
-    while rate_to_edit not in valid_IDs:
+    while rate_to_edit not in valid_ids:
         print("Invalid ID")
         rate_to_edit = input("Which review ID would you like to edit? ")
 
@@ -78,7 +80,7 @@ def edit_rating(cur, user_id):
             case '2' | 'remarks':
                 new_remarks = input("Enter new remarks: ")
             case '3' | 'delete':
-                query = f"DELETE FROM ratings WHERE rating_ID = {rate_to_edit}"
+                query = f"CALL delete_rating('{rate_to_edit}')"
                 cur.execute(query)
                 print(f"Review {rate_to_edit} deleted.")
                 return 0
@@ -161,7 +163,7 @@ def submit_rating(cur, user_id):
         # ask for flavor_ID
 
         # verify valid flavor ID
-        cur.execute("SELECT flavor_ID FROM flavors;")
+        cur.execute("SELECT flavor_ID FROM flavors;")  # simple query
         flavor_IDs = [str(x.get("flavor_ID")) for x in cur.fetchall()]
         while flavor_to_rate not in flavor_IDs:
             print("Invalid flavor entered")

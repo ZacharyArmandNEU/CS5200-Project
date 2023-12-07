@@ -8,7 +8,6 @@ Inserts tuples into database for testing
 
 USE new_england_ice_cream;
 
-
 -- Insert dummy users
 INSERT INTO users VALUES (NULL, 'ZacharyArmand', 'armand.z@northeastern.edu', 'Zachary', 'Armand'),
 	(NULL, 'Bob123', 'bob.testing@northeastern.edu', 'Bob', 'Testing'),
@@ -37,7 +36,7 @@ INSERT INTO flavors VALUES (NULL, 'Vanilla', 'Hard Serve', 1, 1),
     (NULL, 'Vanilla', 'Hard Serve', 1, 3),
     (NULL, 'Vanilla', 'Soft Serve', 1, 3),
     (NULL, 'Vanilla', 'Hard Serve', 1, 4),
-    (NULL, 'Pistacio', 'Gelato', 1, 4),
+    (NULL, 'Pistachio', 'Gelato', 1, 4),
     (NULL, 'Rich Vanilla', 'Hard Serve', 1, 4),
     (NULL, 'Strawberry', 'Hard Serve', 1, 5),
     (NULL, 'Grasshopper', 'Hard Serve', 0, 5),
@@ -48,9 +47,9 @@ CALL insert_rating(1, 4, '2020-12-12', 4, NULL);
 CALL insert_rating(1, 1, '2020-12-12', 1, "Not great");
 CALL insert_rating(1, 6, '2020-12-12', 3, NULL);
 
-
+-- many-to-many tables
 INSERT INTO flavor_base VALUES
--- (1, 'Vanilla'),
+(1, 'Vanilla'),
 (2, 'Chocolate'),
 (3, 'Vanilla'),
 (4, 'Vanilla'),
@@ -62,13 +61,11 @@ INSERT INTO flavor_base VALUES
 (9, 'Vanilla'),
 (10, 'Vanilla'),
 (11, 'Vanilla'),
-(12, 'Pistacio'),
+(12, 'Pistachio'),
 (13, 'French Vanilla'),
 (14, 'Strawberry'),
 (15, 'Mint'),
 (16, 'Chocolate');
-
-
 
 INSERT INTO flavor_mixin VALUES
 (3, 'Chocolate Chip'),

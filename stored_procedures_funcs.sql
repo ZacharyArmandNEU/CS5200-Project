@@ -48,6 +48,25 @@ END $$
 DELIMITER ;
 
 
+-- checks if username already exists\
+-- 1 if already exists, -1 otherwise
+DROP FUNCTION IF EXISTS checker_user_taken;
+DELIMITER $$
+CREATE FUNCTION checker_user_taken(user_name_input VARCHAR(20))
+RETURNS INT 
+CONTAINS SQL
+DETERMINISTIC
+BEGIN
+	DECLARE return_user_exist INT;
+	IF EXISTS(SELECT user_ID FROM users where user_name = user_name_input) THEN
+		SELECT 1 INTO return_user_exist;
+	ELSE
+		SELECT -1 INTO return_user_exist;
+	END IF;
+    RETURN return_user_exist;
+END $$ 
+
+DELIMITER ;
 
 
 -- Update user information
@@ -128,7 +147,6 @@ BEGIN
 		FROM flavors
 		WHERE flavor_ID = rating_flav_ID; 
 
-
 		INSERT INTO ratings 
 		VALUES (NULL, rating_date, rating_stars, rating_remarks, rating_flav_ID, new_brand_ID, input_user_id);
 	END IF;
@@ -199,9 +217,150 @@ BEGIN
 		LEFT JOIN flavor_mixin ON flavor_base.flavor_ID = flavor_mixin.flavor_ID
 		WHERE flavor_base.base_name = in_base_name -- input here
 		GROUP BY flavor_name, chains.brand_name
-		ORDER BY chains.brand_name;    END IF;    
+		ORDER BY chains.brand_name;    
+	END IF;    
 END $$
 DELIMITER ;
+
+
+
+-- VIEW ALL RATINGS BY ONE USER
+DROP PROCEDURE IF EXISTS ratings_by_user;
+
+DELIMITER $$ 
+CREATE PROCEDURE ratings_by_user(IN in_user_id INT)
+BEGIN
+		IF (SELECT user_name FROM users WHERE user_ID = in_user_id) IS NULL THEN
+			SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'User does not exist';
+		ELSE
+			SELECT 
+				rating_ID, 
+				rating_date, 
+				stars, remarks, 
+				flavor_name, 
+				brand_name
+			FROM ratings
+			JOIN chains ON chains.chain_ID = ratings.brand
+			JOIN flavors ON flavors.flavor_ID = ratings.flavor_ID WHERE user_ID = in_user_id;
+		END IF;
+END $$
+DELIMITER ;
+
+
+
+
+
+
+-- VIEW AVG RATINGS BY FLAVOR
+DROP PROCEDURE IF EXISTS ratings_by_flavor;
+
+DELIMITER $$ 
+CREATE PROCEDURE ratings_by_flavor()
+BEGIN
+	SELECT 
+		flavor_name, 
+		AVG(CAST(stars AS float)) AS avg_stars
+	FROM ratings
+	JOIN flavors ON flavors.flavor_ID = ratings.flavor_ID
+	GROUP BY flavor_name;
+END $$
+DELIMITER ;
+
+
+-- VIEW AVG RATINGS BY chain
+DROP PROCEDURE IF EXISTS ratings_by_chain;
+
+DELIMITER $$ 
+CREATE PROCEDURE ratings_by_chain()
+BEGIN
+	SELECT 
+		brand_name, 
+		AVG(CAST(stars AS float)) AS avg_stars
+	FROM ratings
+	JOIN chains ON ratings.brand = chains.chain_ID
+	GROUP BY brand_name;
+END $$
+DELIMITER ;
+
+
+-- Get user info
+DROP PROCEDURE IF EXISTS user_information;
+DELIMITER $$ 
+CREATE PROCEDURE user_information(IN user_name_input INT)
+BEGIN
+
+	IF NOT EXISTS(SELECT user_name FROM users WHERE user_ID = user_name_input) THEN
+		SIGNAL SQLSTATE '45000'
+		SET MESSAGE_TEXT = 'User does not exist';
+	ELSE
+		SELECT * FROM users WHERE user_ID = user_name_input;
+	END IF;
+END $$
+DELIMITER ;
+
+
+-- Gets rating IDs for user
+DROP PROCEDURE IF EXISTS rating_id_user;
+DELIMITER $$ 
+CREATE PROCEDURE rating_id_user(IN user_id_input INT)
+BEGIN
+
+	IF NOT EXISTS(SELECT user_name FROM users WHERE user_ID = user_id_input) THEN
+		SIGNAL SQLSTATE '45000'
+		SET MESSAGE_TEXT = 'User does not exist';
+	ELSE
+		SELECT rating_ID FROM ratings WHERE user_ID = user_id_input;
+	END IF;
+END $$
+DELIMITER ;
+
+
+
+-- Gets rating IDs for user
+DROP PROCEDURE IF EXISTS delete_rating;
+DELIMITER $$ 
+CREATE PROCEDURE delete_rating(IN rating_id_input INT)
+BEGIN
+
+	IF NOT EXISTS(SELECT rating_ID FROM ratings WHERE rating_ID = rating_id_input) THEN
+		SIGNAL SQLSTATE '45000'
+		SET MESSAGE_TEXT = 'Rating does not exist';
+	ELSE
+		DELETE FROM ratings WHERE rating_ID = rating_id_input;
+	END IF;
+END $$
+DELIMITER ;
+
+
+
+
+-- shows all flavors
+-- built in optional filter - HAVING keyword = criteria;
+DROP PROCEDURE IF EXISTS show_flavors;
+DELIMITER $$ 
+CREATE PROCEDURE delete_rating(IN optiona_filter TEXT)
+BEGIN
+
+	IF NOT EXISTS(SELECT rating_ID FROM ratings WHERE rating_ID = rating_id_input) THEN
+		SIGNAL SQLSTATE '45000'
+		SET MESSAGE_TEXT = 'Rating does not exist';
+	ELSE
+		DELETE FROM ratings WHERE rating_ID = rating_id_input;
+	END IF;
+END $$
+DELIMITER ;
+ 	
+
+
+
+
+
+SELECT flavor_ID, flavor_name, ice_cream_type, brand_name
+FROM flavors 
+JOIN chains ON flavors.chain_ID = chains.chain_ID  ;
+
+
 
 
 
