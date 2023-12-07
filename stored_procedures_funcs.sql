@@ -9,32 +9,6 @@ Creates stored procedures and functions
 
 USE new_england_ice_cream;
 
--- register user
-DROP PROCEDURE IF EXISTS create_user;
-DELIMITER $$
-CREATE PROCEDURE create_user( 
-    IN user_name_input VARCHAR(32),
-    IN email_input VARCHAR(32),
-    IN first_name_input VARCHAR(32),
-    IN last_name_input VARCHAR(32)	
-) 
-BEGIN
-	-- Hold results of existence test
-    DECLARE user_exists INT;
-    -- Check if username already exists
-    SELECT COUNT(*) INTO user_exists FROM users WHERE user_name = user_name_input;
-    IF user_exists = 0 THEN
-        -- If not already existing, insert new user into table
-        INSERT INTO users (user_name, email, first_name, last_name)
-        VALUES (user_name_input, email_input, first_name_input, last_name_input);
-	ELSE
-		-- If user already exists, raise error
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Passed username already exists.';
-    END IF;
-END $$
-DELIMITER ;
-
 
 -- check if username and email combo exist
 DROP FUNCTION IF EXISTS check_user_exist;
@@ -75,7 +49,33 @@ BEGIN
 	END IF;
     RETURN return_user_exist;
 END $$ 
+DELIMITER ;
 
+
+-- register user
+DROP PROCEDURE IF EXISTS create_user;
+DELIMITER $$
+CREATE PROCEDURE create_user( 
+    IN user_name_input VARCHAR(32),
+    IN email_input VARCHAR(32),
+    IN first_name_input VARCHAR(32),
+    IN last_name_input VARCHAR(32)	
+) 
+BEGIN
+	-- Hold results of existence test
+    DECLARE user_exists INT;
+    -- Check if username already exists
+    SELECT COUNT(*) INTO user_exists FROM users WHERE user_name = user_name_input;
+    IF user_exists = 0 THEN
+        -- If not already existing, insert new user into table
+        INSERT INTO users (user_name, email, first_name, last_name)
+        VALUES (user_name_input, email_input, first_name_input, last_name_input);
+	ELSE
+		-- If user already exists, raise error
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Passed username already exists.';
+    END IF;
+END $$
 DELIMITER ;
 
 
@@ -105,9 +105,6 @@ END $$
 DELIMITER ;
 
 
-
-
-
 -- Update rating for user
 DROP PROCEDURE IF EXISTS update_ratings;
 DELIMITER $$
@@ -133,8 +130,6 @@ BEGIN
     END IF;
 END $$
 DELIMITER ;
-
-
 
 
 -- Insert new rating
@@ -180,12 +175,10 @@ END $$
 DELIMITER ;
 
 
-
 -- search for flavors by mixin
 -- accepts a mixin name as input
 -- also accepts 'None' as an input
 DROP PROCEDURE IF EXISTS flavors_by_mixin;
-
 DELIMITER $$
 CREATE PROCEDURE flavors_by_mixin(in_mixin_name VARCHAR(64))
 BEGIN
@@ -223,7 +216,6 @@ DELIMITER ;
 -- Searches for flavors by base
 -- Every flavor has a base, so no need to test for NULL input
 DROP PROCEDURE IF EXISTS flavors_by_base;
-
 DELIMITER $$
 CREATE PROCEDURE flavors_by_base(IN in_base_name VARCHAR(64))
 BEGIN
@@ -249,37 +241,8 @@ DELIMITER ;
 
 
 
--- VIEW ALL RATINGS BY ONE USER
-DROP PROCEDURE IF EXISTS ratings_by_user;
-
-DELIMITER $$ 
-CREATE PROCEDURE ratings_by_user(IN in_user_id INT)
-BEGIN
-		IF (SELECT user_name FROM users WHERE user_ID = in_user_id) IS NULL THEN
-			SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'User does not exist';
-		ELSE
-			SELECT 
-				rating_ID, 
-				rating_date, 
-				stars, remarks, 
-				flavor_name, 
-				brand_name
-			FROM ratings
-			JOIN chains ON chains.chain_ID = ratings.brand
-			JOIN flavors ON flavors.flavor_ID = ratings.flavor_ID WHERE user_ID = in_user_id;
-		END IF;
-END $$
-DELIMITER ;
-
-
-
-
-
-
 -- VIEW AVG RATINGS BY FLAVOR
 DROP PROCEDURE IF EXISTS ratings_by_flavor;
-
 DELIMITER $$ 
 CREATE PROCEDURE ratings_by_flavor()
 BEGIN
@@ -295,7 +258,6 @@ DELIMITER ;
 
 -- VIEW AVG RATINGS BY chain
 DROP PROCEDURE IF EXISTS ratings_by_chain;
-
 DELIMITER $$ 
 CREATE PROCEDURE ratings_by_chain()
 BEGIN
@@ -340,7 +302,6 @@ END $$
 DELIMITER ;
 
 
-
 -- Gets rating IDs for user
 DROP PROCEDURE IF EXISTS delete_rating;
 DELIMITER $$ 
@@ -357,8 +318,6 @@ END $$
 DELIMITER ;
 
 
-
-
 -- shows all flavors with a filter
 DROP PROCEDURE IF EXISTS show_flavors;
 DELIMITER $$ 
@@ -372,8 +331,6 @@ BEGIN
 END $$
 DELIMITER ;
  	
-
-
 
 -- searches company by criteria
 DROP PROCEDURE IF EXISTS show_brands;
@@ -389,7 +346,7 @@ END $$
 DELIMITER ;
 
 
-        
+-- 
 DROP PROCEDURE IF EXISTS filter_from_flavors;
 DELIMITER $$
 CREATE PROCEDURE filter_from_flavors( IN filter_keyword TEXT)
@@ -401,4 +358,65 @@ BEGIN
 END $$
 DELIMITER ;
         
-			
+-- 
+DROP FUNCTION IF EXISTS brand_names_from_chain;
+DELIMITER $$
+CREATE FUNCTION brand_names_from_chain(input_chain_id INT)
+RETURNS VARCHAR(64) 
+CONTAINS SQL
+DETERMINISTIC
+BEGIN
+	DECLARE return_brand_name VARCHAR(64);
+	IF NOT EXISTS(SELECT chain_ID FROM chains WHERE chain_ID = input_chain_id) THEN
+		SIGNAL SQLSTATE '45000'
+		SET MESSAGE_TEXT = 'Chain ID does not exist';
+	ELSE
+		SELECT brand_name INTO return_brand_name FROM chains WHERE chain_ID = input_chain_id;
+        RETURN return_brand_name;
+	END IF;
+END $$ 
+DELIMITER ;
+
+-- 
+DROP PROCEDURE IF EXISTS flavor_search_procedure;
+DELIMITER $$ 
+CREATE PROCEDURE flavor_search_procedure(IN search_criteria TEXT, IN search_term TEXT)
+BEGIN
+    -- Check if the search_criteria is a valid field in the flavors table
+    IF NOT EXISTS (
+        SELECT COLUMN_NAME
+        FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_NAME = 'flavors' AND COLUMN_NAME = search_criteria
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Invalid search criteria. The specified field does not exist in the flavors table.';
+    ELSE
+        -- If the search_criteria is valid, proceed with the dynamic SQL query
+        SET @query = CONCAT('SELECT flavor_name, ice_cream_type FROM flavors WHERE ', search_criteria, ' = ?');
+        PREPARE stmt FROM @query;
+        SET @search_term = search_term;
+        EXECUTE stmt USING @search_term;
+        DEALLOCATE PREPARE stmt;
+    END IF;
+END $$
+DELIMITER ;
+
+
+-- 
+DROP PROCEDURE IF EXISTS ratings_by_table;
+DELIMITER $$ 
+CREATE PROCEDURE ratings_by_table(IN in_table_name TEXT, IN search_criteria TEXT, IN search_term TEXT)
+BEGIN
+	set @query = CONCAT(
+		'SELECT rating_ID, rating_date, stars, remarks, flavor_name, brand_name
+		FROM ratings
+		JOIN chains ON chains.chain_ID = ratings.brand
+		JOIN flavors ON flavors.flavor_ID = ratings.flavor_ID 
+		WHERE ',  in_table_name, '.', search_criteria, ' = ?');
+	PREPARE stmt FROM @query;
+	SET @search_term = search_term;
+EXECUTE stmt USING @search_term;
+END $$
+DELIMITER ;
+
+

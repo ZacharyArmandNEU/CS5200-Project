@@ -3,10 +3,14 @@ Zachary Armand
 CS 5200
 Final Project
 December 7, 2023
-Functions for running main menu after logging in
+Functions for running menus before and after logging in
 """
 
 import pymysql
+# associated files to support this project
+from view_functions import view_menu
+from edit_functions import edit_user, edit_rating, submit_rating
+from search_functions import search_menu
 
 
 def register_user(cur):
@@ -17,9 +21,13 @@ def register_user(cur):
     """
 
     try:
+        # all queries inside loop contained within this try-except
         while True:
-            # get user choices for creating account
-            user_name_input = input("Enter a username: ").replace(" ", "")  # strip whitespace from username
+            # get user choices for creating account - strip whitespace
+            user_name_input = input("Enter a username (spaces will be removed): ").replace(" ", "")
+            while len(user_name_input) == 0:
+                # meaning, blank input
+                user_name_input = input("Blank input. Enter a username: ").replace(' ', '')
             # Call procedure check_user_exists
             call_check_user = f"SELECT checker_user_taken('{user_name_input}');"
             cur.execute(call_check_user)
@@ -31,7 +39,12 @@ def register_user(cur):
             # else, allow user to create account with given username
             elif user_check == -1:  # username doesn't exist
                 # ask for other info to create account
-                user_input_email = input("Enter an email: ")
+                user_input_email = input("Enter an email (spaces will be removed): ").replace(' ', '')
+                # check if user entered blank email
+                while len(user_input_email) == 0:
+                    # meaning, blank input
+                    user_input_email = input("Blank input. Enter an email: ").replace(' ', '')
+                # first name and last name can be blank
                 user_input_firstname = input("Enter a first name: ")
                 user_input_lastname = input("Enter a last name: ")
                 # format user input for passing to create user function
@@ -111,7 +124,40 @@ def home_screen(cur):
         else:
             print("Invalid choice")
 
-        # Check if we can return user_ID
+        # Check if function can return user_ID
         if user_id != -1:
             print("Login successful.")
             return user_id
+
+
+def main_menu(cur, user_id):
+    """
+    Runs main menu after successfully logging in
+    :param cur: pymysql cursor object
+    :param user_id: INT, user id for session
+    :return: None, runs until user decides to quit menu
+    """
+
+    # print main message
+    print("Welcome. Please choose an option.")
+    while True:
+        # ask user for their choice
+        user_choice = input("Enter:\n   1 | explore network\n   2 | submit review\n   3 | search flavors, companies, "
+                            "review\n   4 | edit review\n   5 | edit user info\n   6 | quit\n")
+        # run corresponding utility
+        match user_choice.lower():
+            case '1' | 'explore':
+                view_menu(cur, user_id)
+            case '2' | 'submit review':
+                submit_rating(cur, user_id)
+            case '3' | 'search':
+                search_menu(cur)
+            case '4' | 'edit review':
+                edit_rating(cur, user_id)
+            case '5' | 'edit user':
+                edit_user(cur, user_id)
+            case '6' | 'quit':
+                print("Exiting application")
+                return None  # effectively quits
+            case _:  # all other input
+                print("Invalid choice")
