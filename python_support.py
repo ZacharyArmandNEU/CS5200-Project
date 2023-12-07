@@ -28,18 +28,17 @@ def main():
         print("Failed to connect to database. Exiting program.")
         sys.exit()  # terminate program
     # if connection successful, create cursor object
-    cur = cnx.cursor()
+
 
     # assign current user id to object for later usage
-    current_user_id = home_screen(cur)
+    current_user_id = home_screen(cnx)
 
     # run main menu until program quits
     if current_user_id is not None:
-        main_menu(cur, current_user_id)
+        main_menu(cnx, current_user_id)
 
     # Close the connection to the database and end the application program. Commit any changes
     cnx.commit()
-    cur.close()
     cnx.close()
     sys.exit()
 

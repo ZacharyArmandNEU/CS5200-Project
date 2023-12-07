@@ -10,9 +10,10 @@ import pymysql
 from view_functions import view_user_rating  # file included with this project
 
 
-def edit_user(cur, user_id):
+def edit_user(cur, cnx, user_id):
     """
     Function to edit user information
+    :param cnx: pymysql connection
     :param cur: current pymysql cursor object
     :param user_id: current user ID for session
     :return: None, exits function when successful
@@ -70,6 +71,7 @@ def edit_user(cur, user_id):
                 # update user information (procedure deals with NULL values)
                 query = "CALL update_user(%s, %s, %s, %s)"
                 cur.execute(query, (user_id, new_email, new_first, new_last))
+                cnx.commit()
                 print("User information updated.")
                 return None
             except pymysql.err:
@@ -77,9 +79,10 @@ def edit_user(cur, user_id):
                 return None
 
 
-def edit_rating(cur, user_id):
+def edit_rating(cur, cnx, user_id):
     """
     Function to edit user ratings based on input
+    :param cnx: pymysql connection
     :param cur: current pymysql cursor object
     :param user_id: current user ID for session
     :return: None, exits when successful
@@ -130,6 +133,8 @@ def edit_rating(cur, user_id):
                 try:
                     query = f"CALL delete_rating('{rate_to_edit}')"
                     cur.execute(query)
+                    # commit changes to database
+                    cnx.commit()
                 except pymysql.err:
                     print("Error occurred Exiting to main menu.")
                     return None
@@ -146,6 +151,8 @@ def edit_rating(cur, user_id):
         # update user information (procedure deals with NULL values)
         query = "CALL update_ratings(%s, %s, %s)"
         cur.execute(query, (rate_to_edit, new_stars, new_remarks))
+        # commit changes to database
+        cnx.commit()
         print("Update successful")
         # exit upon success
         return None
@@ -234,10 +241,11 @@ def ask_for_filter(cur):
     return query
 
 
-def submit_rating(cur, user_id):
+def submit_rating(cur, cnx, user_id):
     """
     Function to allow user to submit a rating of a flavor.
         Allows an option filtering to view rating options
+    :param cnx: pymysql connection
     :param cur: current pymysql cursor object
     :param user_id: current user ID for session
     :return:
@@ -280,6 +288,8 @@ def submit_rating(cur, user_id):
             # call procedure insert_rating
             call_insert_rating = "CALL insert_rating(%s, %s, %s, %s, %s)"
             cur.execute(call_insert_rating, (user_id, flavor_to_rate, rating_date, stars, remarks))
+            # commit update
+            cnx.commit()
             # at this point, success. Exit rating insert
             print("Review successfully submitted. Thanks!")
             return None

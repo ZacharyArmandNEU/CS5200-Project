@@ -44,9 +44,13 @@ INSERT INTO flavors VALUES (NULL, 'Vanilla', 'Hard Serve', 1),
     (NULL, 'Phish Food', 'Hard Serve', 2);
 
 -- ratings
-CALL insert_rating(1, 4, '2020-12-12', 4, NULL);
-CALL insert_rating(1, 1, '2020-12-12', 1, "Not great");
-CALL insert_rating(1, 6, '2020-12-12', 3, NULL);
+CALL insert_rating(1, 4, '2023-03-23', 4, NULL);
+CALL insert_rating(1, 1, '2023-11-30', 1, "Not great");
+CALL insert_rating(1, 6, '2023-11-22', 3, NULL);
+CALL insert_rating(2, 1, '2023-12-04', 4, NULL);
+CALL insert_rating(2, 10, '2023-12-01', 5, "Really Delicious!");
+CALL insert_rating(3, 2, '2023-11-12', 2, "Fairly average");
+
 
 -- many-to-many tables
 INSERT INTO flavor_base VALUES

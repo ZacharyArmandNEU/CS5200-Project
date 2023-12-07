@@ -9,8 +9,7 @@ Creates stored procedures and functions
 
 USE new_england_ice_cream;
 
-
--- check if username and email combo exist
+-- check if username and email combo exist, 
 DROP FUNCTION IF EXISTS check_user_exist;
 DELIMITER $$
 CREATE FUNCTION check_user_exist(user_name_input VARCHAR(32), email_input VARCHAR(32))

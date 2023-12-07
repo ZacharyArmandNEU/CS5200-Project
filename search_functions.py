@@ -165,12 +165,11 @@ def flavor_search(cur, search_criteria, search_term):
     except pymysql.err:
         print("Error occurred Exiting to main menu")
         return None
-    print(f"All flavors by {filter_term}:")
-    results = [x.get('flavor_name') for x in cur.fetchall()]
+    print(f"\nAll flavors by {filter_term} (Name: Ice Cream Type):")
+    results = [[x.get('flavor_name'), x.get('ice_cream_type')] for x in cur.fetchall()]
     # Print each entry on a new line
-    print("Flavors: ")
     for each in results:
-        print(each)
+        print("Flavor name: ", each[0], ". Type: ", each[1], sep='')
     print('')
 
 
@@ -251,4 +250,5 @@ def validate_flavor_choice(cur):
     while True:
         flavor_name = input("Enter a flavor from the above: ")
         if flavor_name in results:
+            print('')
             return flavor_name
