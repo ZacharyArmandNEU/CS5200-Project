@@ -6,6 +6,7 @@ December 7, 2023
 Inserts tuples into database for testing
 */
 
+
 USE new_england_ice_cream;
 
 -- Insert dummy users
@@ -25,22 +26,22 @@ INSERT INTO base VALUES ('French Vanilla', 'Uses egg yolks, making it distinct f
 INSERT INTO mixin VALUES ('Caramel', 'Caramel swirl'), ('Walnuts', 'Chopped walnuts'), ('Chocolate Chip', NULL), ('Cookie Dough', 'Chunks of cookie dough'), ('Cherries', 'Chunks of cherry pieces'), ('Chocolate Chip Cookie', NULL), ('Fluff', 'A fluffy marshmellow swirl');
 
 -- Insert flavors
-INSERT INTO flavors VALUES (NULL, 'Vanilla', 'Hard Serve', 1, 1),
-	(NULL, 'Chocolate', 'Hard Serve', 1, 1),
-    (NULL, 'Chocolate Chip', 'Hard Serve', 1, 1),
-    (NULL, 'Vanilla', 'Soft Serve', 1, 1),
-    (NULL, 'Maple Walnut', 'Hard Serve', 1, 2),
-    (NULL, 'Cherry Garcia', 'Hard Serve', 1, 2),
-    (NULL, 'Swirl', 'Soft Serve', 1, 3),
-	(NULL, 'Chocolate', 'Soft Serve', 1, 3),
-    (NULL, 'Vanilla', 'Hard Serve', 1, 3),
-    (NULL, 'Vanilla', 'Soft Serve', 1, 3),
-    (NULL, 'Vanilla', 'Hard Serve', 1, 4),
-    (NULL, 'Pistachio', 'Gelato', 1, 4),
-    (NULL, 'Rich Vanilla', 'Hard Serve', 1, 4),
-    (NULL, 'Strawberry', 'Hard Serve', 1, 5),
-    (NULL, 'Grasshopper', 'Hard Serve', 0, 5),
-    (NULL, 'Phish Food', 'Hard Serve', 1, 2);
+INSERT INTO flavors VALUES (NULL, 'Vanilla', 'Hard Serve', 1),
+	(NULL, 'Chocolate', 'Hard Serve', 1),
+    (NULL, 'Chocolate Chip', 'Hard Serve', 1),
+    (NULL, 'Vanilla', 'Soft Serve', 1),
+    (NULL, 'Maple Walnut', 'Hard Serve', 2),
+    (NULL, 'Cherry Garcia', 'Hard Serve', 2),
+    (NULL, 'Swirl', 'Soft Serve', 3),
+	(NULL, 'Chocolate', 'Soft Serve', 3),
+    (NULL, 'Vanilla', 'Hard Serve', 3),
+    (NULL, 'Vanilla', 'Soft Serve', 3),
+    (NULL, 'Vanilla', 'Hard Serve', 4),
+    (NULL, 'Pistachio', 'Gelato', 4),
+    (NULL, 'Rich Vanilla', 'Hard Serve', 4),
+    (NULL, 'Strawberry', 'Hard Serve', 5),
+    (NULL, 'Grasshopper', 'Hard Serve', 5),
+    (NULL, 'Phish Food', 'Hard Serve', 2);
 
 -- ratings
 CALL insert_rating(1, 4, '2020-12-12', 4, NULL);

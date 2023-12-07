@@ -1,12 +1,25 @@
+"""
+Zachary Armand
+CS 5200
+Final Project
+December 7, 2023
+Functions for running functions that Update or Delete
+"""
+
 import pymysql
 from view_functions import view_user_rating
 
 
 def edit_user(cur, user_id):
+    """
+    Function to edit user information
+    :param cur: current pymysql cursor object
+    :param user_id: current user ID for session
+    :return: None, exits function when successful
+    """
 
     # make sure user_id is integer
     user_id = int(user_id)
-
     # print user information for user
     try:
         query = f"CALL user_information({user_id});"
@@ -16,39 +29,61 @@ def edit_user(cur, user_id):
         return None
     rows = cur.fetchone()
     print("User information")
+    # print all information
     for key, value in rows.items():
         print(f'{key}: {value}')
     print('')
 
     while True:
         # ask user for their choice
-        user_choice = input("Enter:\n   1 to edit email\n   2 to edit first name\n"
-                            "   3 to edit last name\n   4 to return to menu\n")
-        # get user input
+        user_choice = input("Enter:\n   1 | to edit email\n   2 | to edit first name\n"
+                            "   3 | to edit last name\n   4 | to return to menu\n")
+        # get user input and match choice
         new_email, new_first, new_last = None, None, None
         match user_choice.lower():
             case '1' | 'email':
-                new_email = input("Enter new email: ")
+                new_email = input("Enter new email (spaces will be stripped): ").replace(' ', '')
             case '2' | 'first name':
                 new_first = input("Enter new first name: ")
             case '3' | 'last name':
                 new_last = input("Enter new last name: ")
             case '4' | 'quit':
-                return 0
+                return None
+            case _:
+                print("Invalid input")
 
-        # update user information (procedure deals with NULL values)
-        query = "CALL update_user(%s, %s, %s, %s)"
-        cur.execute(query, (user_id, new_email, new_first, new_last))
-        return 0
+        # validate input
+        pass_input_val = False
+        for each in [new_email, new_first, new_last]:
+            if each is not None:  # meaning, this is the one with input
+                if len(each) > 32:
+                    print("Input over 32 characters. Please retry.")
+                    pass_input_val = False
+                elif len(each) == 0 or each.isspace():
+                    print("Input is blank. Please retry.")
+                    pass_input_val = False
+                else:
+                    pass_input_val = True
+        if pass_input_val:
+            # update user information (procedure deals with NULL values)
+            query = "CALL update_user(%s, %s, %s, %s)"
+            cur.execute(query, (user_id, new_email, new_first, new_last))
+            print("User information updated.")
+            return None
 
 
 def edit_rating(cur, user_id):
+    """
+    Function to edit user ratings based on input
+    :param cur: current pymysql cursor object
+    :param user_id: current user ID for session
+    :return: None, exits when successful
+    """
+
     # make sure user_id is integer
     user_id = int(user_id)
-
     # print all ratings by that user
     view_user_rating(cur, user_id)
-
     # fetch all valid rating IDs from user for data validation
     query = f"CALL rating_id_user('{user_id}');"
     cur.execute(query)
@@ -65,8 +100,6 @@ def edit_rating(cur, user_id):
         print("Invalid ID")
         rate_to_edit = input("Which review ID would you like to edit? ")
 
-
-
     # ask what aspect of review to edit
     while True:
         # ask user for their choice
@@ -77,31 +110,46 @@ def edit_rating(cur, user_id):
         match user_choice.lower():
             case '1' | 'stars':
                 new_stars = input("Enter new rating (1-5): ")
+                # validate user input
+                while new_stars not in ['1', '2', '3', '4', '5']:
+                    new_stars = input("Invalid input. Please enter rating between 1 and 5: ")
+                break
             case '2' | 'remarks':
                 new_remarks = input("Enter new remarks: ")
+                break
             case '3' | 'delete':
                 query = f"CALL delete_rating('{rate_to_edit}')"
                 cur.execute(query)
+                # print success message
                 print(f"Review {rate_to_edit} deleted.")
-                return 0
+                # deletion successful, exit function
+                return None
             case '4' | 'quit':
-                return 0
+                return None
+            case _:
+                print("Invalid input")
 
-        # update user information (procedure deals with NULL values)
-        query = "CALL update_ratings(%s, %s, %s)"
-        cur.execute(query, (user_id, new_stars, new_remarks))
-        return 0
+    # update user information (procedure deals with NULL values)
+    query = "CALL update_ratings(%s, %s, %s)"
+    cur.execute(query, (rate_to_edit, new_stars, new_remarks))
+    print("Update successful")
+    # exit upon success
+    return None
 
 
 def get_filter_keyword():
+    """
+    Asks user what they want to filter flavors on
+    :return: filter keyword, either 'flavor_name' or 'brand_name'
+    """
 
-    # validate user input
     while True:
         filter_keyword = input("Enter\n   1 | filter by flavor\n   2 | filter by chain\n")
+        # validate user input - don't allow options besides 1 or 2
         if filter_keyword not in ['1', '2']:
             print("Invalid input")
         else:
-            # get filter criteria
+            # get filter criteria (predefined choices)
             if filter_keyword == '1':
                 return 'flavor_name'
             elif filter_keyword == '2':
@@ -109,23 +157,35 @@ def get_filter_keyword():
 
 
 def get_filter_criteria(cur, filter_keyword):
+    """
+    Gets filter criteria from user
+    :param cur: current pymysql cursor object
+    :param filter_keyword:
+    :return: filter_criteria
+    """
 
-    query = f"SELECT DISTINCT {filter_keyword}\
-        FROM flavors \
-        JOIN chains ON flavors.chain_ID = chains.chain_ID ORDER BY {filter_keyword};"
-    cur.execute(query)
+    # execute query to show available filters
+    query = "CALL filter_from_flavors(%s)"
+    cur.execute(query, filter_keyword)
+    # get results in a list
     results = [x[filter_keyword] for x in cur.fetchall()]
     print("Filter options: ")
     print(', '.join(map(str, results)))
-
     # ask for user input
     while True:
         filter_criteria = input("Enter a filter from the above: ")
+        # check that user input valid. If not, loop
         if filter_criteria in results:
             return filter_criteria
 
 
-def submit_rating(cur, user_id):
+def ask_for_filter(cur):
+    """
+    Asks user if they wish to filter flavors.
+        Creates query based on y/n response
+    :param cur: current pymysql cursor object
+    :return: query, string with query to execute to show flavors
+    """
 
     # ask for filter criteria
     while True:
@@ -135,21 +195,33 @@ def submit_rating(cur, user_id):
         else:
             break
 
-    # get keyword and criteria for filter
+    # get keyword and criteria for filter and construct queries
     if rating_filter == 'y':
+        # user wishes to provide filter. Show options
         filter_keyword = get_filter_keyword()
         filter_criteria = get_filter_criteria(cur, filter_keyword)
-        query_clause = f" HAVING {filter_keyword} = '{filter_criteria}' "
+        query = f"CALL show_flavors('{filter_keyword}', '{filter_criteria}');"
     else:
-        query_clause = ''
+        # query with no user input - just selecting all flavors
+        query = "SELECT flavor_ID, flavor_name, ice_cream_type, brand_name\
+                    FROM flavors \
+                    JOIN chains ON flavors.chain_ID = chains.chain_ID;"
+    return query
+
+
+def submit_rating(cur, user_id):
+    """
+    Function to allow user to submit a rating of a flavor.
+        Allows an option filtering to view rating options
+    :param cur: current pymysql cursor object
+    :param user_id: current user ID for session
+    :return:
+    """
+
+    # ask user if they want to filter flavors
+    query = ask_for_filter(cur)
 
     while True:
-        # show flavors and companies
-        query = "SELECT flavor_ID, flavor_name, ice_cream_type, brand_name\
-            FROM flavors \
-            JOIN chains ON flavors.chain_ID = chains.chain_ID" + \
-            query_clause + ";"
-        print(query)
         cur.execute(query)
         results = [x for x in cur.fetchall()]
         print("All flavors: ")
@@ -158,17 +230,14 @@ def submit_rating(cur, user_id):
                 print(key, ': ', each[key], sep='', end='. ')
             print('')
         print('')
-
-        flavor_to_rate = input("What flavor would you like to rate (enter Flavor ID): ")
         # ask for flavor_ID
-
+        flavor_to_rate = input("What flavor would you like to rate (enter Flavor ID): ")
         # verify valid flavor ID
-        cur.execute("SELECT flavor_ID FROM flavors;")  # simple query
-        flavor_IDs = [str(x.get("flavor_ID")) for x in cur.fetchall()]
-        while flavor_to_rate not in flavor_IDs:
+        flavor_ids = [str(x['flavor_ID']) for x in results]
+        while flavor_to_rate not in flavor_ids:
+            # invalid flavor entered. Ask again
             print("Invalid flavor entered")
             flavor_to_rate = input("What flavor would you like to rate (enter Flavor ID): ")
-
         try:
             # ask for components of rating
             rating_date = input("Enter date of rating (YYYY-MM-DD): ")
@@ -178,23 +247,20 @@ def submit_rating(cur, user_id):
                 stars = input("Enter number of stars (1-5): ")
             remarks = input("Enter any remarks: ")
 
-            # Call procedure insert_rating
-            call_insert_rating = f"CALL insert_rating('{user_id}', '{flavor_to_rate}', '{rating_date}', '{stars}', '{remarks}');"
-            cur.execute(call_insert_rating)
+            # call procedure insert_rating
+            call_insert_rating = "CALL insert_rating(%s, %s, %s, %s, %s)"
+            cur.execute(call_insert_rating, (user_id, flavor_to_rate, rating_date, stars, remarks))
             # at this point, success. Exit rating insert
             print("Rating successfully submitted. Thanks!")
             return None
-        except pymysql.err.OperationalError:
-            print("Rating for this combination of userID and flavorID already exist")
-            return -1
 
-        # submit another?
-        while True:
-            more_rating = input("Would you like to enter another rating (Y/N): ").lower()
-            if more_rating == 'y':
-                break
-            elif more_rating == 'n':
-                return 0
+        except pymysql.err.OperationalError as error:
+            # get specific error code
+            error_code, _ = error.args
+            if error_code == 1644:
+                print('Rating for this combination of userID and flavorID already exist.')
+            elif error_code == 1411:
+                print('Invalid date format. Please use YYYY-MM-DD.')
             else:
-                print("Invalid Input")
-
+                print("An error occurred:", error)
+            return -1

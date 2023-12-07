@@ -1,41 +1,51 @@
+"""
+Zachary Armand
+CS 5200
+Final Project
+December 7, 2023
+Functions for running main menu after logging in
+"""
+
 import pymysql
 
 
 def register_user(cur):
     """
-    Creates user in database table `users`.
-    param cur: current pymysql cursor object
+    Creates user in database table `users`
+    :param cur: current pymysql cursor object
     :return: user_id, user ID for successfully created user in database.
     """
+
     try:
         while True:
             # get user choices for creating account
             user_name_input = input("Enter a username: ").replace(" ", "")  # strip whitespace from username
-
             # Call procedure check_user_exists
             call_check_user = f"SELECT checker_user_taken('{user_name_input}');"
             cur.execute(call_check_user)
+            # get response from calling username checker
             user_check = next(iter(cur.fetchone().values()), None)
-
             # if fails, repeat loop
             if user_check == 1:
                 print("Error: Passed username already exists")
+            # else, allow user to create account with given username
             elif user_check == -1:  # username doesn't exist
+                # ask for other info to create account
                 user_input_email = input("Enter an email: ")
                 user_input_firstname = input("Enter a first name: ")
                 user_input_lastname = input("Enter a last name: ")
-
                 # format user input for passing to create user function
                 pass_user_input = f"'{user_name_input}', '{user_input_email}'," \
                                   f" '{user_input_firstname}', '{user_input_lastname}'"
                 call_create_user = "CALL create_user(" + pass_user_input + ");"
-                # Call the procedure.
+                # call the procedure.
                 cur.execute(call_create_user)
 
-                # get new userID
+                # get new userID for later use
                 query = f"SELECT check_user_exist('{user_name_input}', '{user_input_email}');"
                 cur.execute(query)
                 user_id = next(iter(cur.fetchone().values()), -1)
+                # print success message and account information
                 print(f"Successfully registered with username '{user_name_input}' and email '{user_input_email}'")
                 return user_id
     except pymysql.err.OperationalError:
@@ -77,8 +87,14 @@ def login_user(cur):
 
 
 def home_screen(cur):
+    """
+    Displays home screen options
+    :param cur: pymysql cursor object
+    :return: user_id if login is successful, None if user chooses to exit program
+    """
     # print greeting message
     print("Welcome to New England Ice Cream Network!")
+    # exit loop value - will take valid user_id once complete
     user_id = -1
     while True:
         # ask user for their choice
@@ -91,7 +107,7 @@ def home_screen(cur):
             user_id = register_user(cur)
         elif (user_choice == '3') or (user_choice.lower() == "quit"):
             print("Exiting application")
-            return 0
+            return None
         else:
             print("Invalid choice")
 

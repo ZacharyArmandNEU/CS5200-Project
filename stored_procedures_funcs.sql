@@ -1,10 +1,19 @@
+/*
+Zachary Armand
+CS 5200
+Final Project
+December 7, 2023
+Creates stored procedures and functions
+*/
 
+
+USE new_england_ice_cream;
 
 -- register user
 DROP PROCEDURE IF EXISTS create_user;
 DELIMITER $$
 CREATE PROCEDURE create_user( 
-    IN user_name_input VARCHAR(20),
+    IN user_name_input VARCHAR(32),
     IN email_input VARCHAR(32),
     IN first_name_input VARCHAR(32),
     IN last_name_input VARCHAR(32)	
@@ -16,7 +25,8 @@ BEGIN
     SELECT COUNT(*) INTO user_exists FROM users WHERE user_name = user_name_input;
     IF user_exists = 0 THEN
         -- If not already existing, insert new user into table
-        INSERT INTO users VALUES (NULL, user_name_input, email_input, first_name_input, last_name_input);
+        INSERT INTO users (user_name, email, first_name, last_name)
+        VALUES (user_name_input, email_input, first_name_input, last_name_input);
 	ELSE
 		-- If user already exists, raise error
         SIGNAL SQLSTATE '45000'
@@ -29,7 +39,7 @@ DELIMITER ;
 -- check if username and email combo exist
 DROP FUNCTION IF EXISTS check_user_exist;
 DELIMITER $$
-CREATE FUNCTION check_user_exist(user_name_input VARCHAR(20), email_input VARCHAR(32))
+CREATE FUNCTION check_user_exist(user_name_input VARCHAR(32), email_input VARCHAR(32))
 RETURNS INT
 CONTAINS SQL
 DETERMINISTIC
@@ -52,7 +62,7 @@ DELIMITER ;
 -- 1 if already exists, -1 otherwise
 DROP FUNCTION IF EXISTS checker_user_taken;
 DELIMITER $$
-CREATE FUNCTION checker_user_taken(user_name_input VARCHAR(20))
+CREATE FUNCTION checker_user_taken(user_name_input VARCHAR(32))
 RETURNS INT 
 CONTAINS SQL
 DETERMINISTIC
@@ -102,18 +112,24 @@ DELIMITER ;
 DROP PROCEDURE IF EXISTS update_ratings;
 DELIMITER $$
 CREATE PROCEDURE update_ratings(
-	IN intput_user_ID INT,
+	IN input_rating_id INT,
     IN new_stars INT,
     IN new_remarks TEXT
 )
 BEGIN
     -- Update stars if new_stars is not NULL
     IF new_stars IS NOT NULL THEN
-        UPDATE ratings SET stars = new_stars WHERE intput_user_ID = user_ID;
+		IF new_stars NOT IN ('1', '2', '3', '4', '5') THEN 
+			SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'Stars input not between a number 1 and 5',
+            MYSQL_ERRNO = '1644';
+		ELSE
+			UPDATE ratings SET stars = new_stars WHERE rating_ID = input_rating_id;
+		END IF;
     END IF;
     -- Update remarks if new_remarks is not NULL
     IF new_remarks IS NOT NULL THEN
-        UPDATE ratings SET remarks = new_remarks WHERE intput_user_ID = user_ID;
+        UPDATE ratings SET remarks = new_remarks WHERE rating_ID = input_rating_id;
     END IF;
 END $$
 DELIMITER ;
@@ -121,38 +137,47 @@ DELIMITER ;
 
 
 
-
 -- Insert new rating
--- Works in conjunction with trigger "chain_update_after_rating"
 DROP PROCEDURE IF EXISTS insert_rating;
 DELIMITER $$
 CREATE PROCEDURE insert_rating( 
     IN input_user_id INT,
     IN rating_flav_ID INT,
-    IN rating_date DATE,
+    IN rating_date TEXT,  -- will format in procedure
     IN rating_stars INT,
     IN rating_remarks TEXT
 ) 
 BEGIN
 	
     DECLARE new_brand_ID INT;
+    DECLARE formatted_date DATE;
     
-	-- validate that combination of userID, flavorID doesn't already exist
-    IF EXISTS(SELECT user_ID, flavor_ID FROM ratings where user_ID = input_user_id AND flavor_ID = rating_flav_ID) THEN
-		SIGNAL SQLSTATE '23000'
-        SET MESSAGE_TEXT = 'Rating for this combination of userID and flavorID already exist.';
-	ELSE
-		
-		SELECT chain_ID INTO new_brand_ID
-		FROM flavors
-		WHERE flavor_ID = rating_flav_ID; 
+    -- Attempt to convert the input string to a date
+    set formatted_date = STR_TO_DATE(rating_date, '%Y-%m-%d');
 
-		INSERT INTO ratings 
-		VALUES (NULL, rating_date, rating_stars, rating_remarks, rating_flav_ID, new_brand_ID, input_user_id);
+    IF (formatted_date IS NULL) THEN
+        -- Handle the case where the date format is invalid
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Invalid date format. Please use YYYY-MM-DD.',
+        MYSQL_ERRNO = '1411';
+    ELSE
+		-- validate that combination of userID, flavorID doesn't already exist
+		IF EXISTS(SELECT user_ID, flavor_ID FROM ratings where user_ID = input_user_id AND flavor_ID = rating_flav_ID) THEN
+			SIGNAL SQLSTATE '23000'
+			SET MESSAGE_TEXT = 'Rating for this combination of userID and flavorID already exist.',
+            MYSQL_ERRNO = '1644';
+		ELSE
+			
+			SELECT chain_ID INTO new_brand_ID
+			FROM flavors
+			WHERE flavor_ID = rating_flav_ID; 
+
+			INSERT INTO ratings 
+			VALUES (NULL, rating_date, rating_stars, rating_remarks, rating_flav_ID, new_brand_ID, input_user_id);
+		END IF;
 	END IF;
 END $$
 DELIMITER ;
-
 
 
 
@@ -305,7 +330,6 @@ DROP PROCEDURE IF EXISTS rating_id_user;
 DELIMITER $$ 
 CREATE PROCEDURE rating_id_user(IN user_id_input INT)
 BEGIN
-
 	IF NOT EXISTS(SELECT user_name FROM users WHERE user_ID = user_id_input) THEN
 		SIGNAL SQLSTATE '45000'
 		SET MESSAGE_TEXT = 'User does not exist';
@@ -335,32 +359,46 @@ DELIMITER ;
 
 
 
--- shows all flavors
--- built in optional filter - HAVING keyword = criteria;
+-- shows all flavors with a filter
 DROP PROCEDURE IF EXISTS show_flavors;
 DELIMITER $$ 
-CREATE PROCEDURE delete_rating(IN optiona_filter TEXT)
+CREATE PROCEDURE show_flavors(IN filter_keyword TEXT, IN filter_criteria TEXT)
 BEGIN
-
-	IF NOT EXISTS(SELECT rating_ID FROM ratings WHERE rating_ID = rating_id_input) THEN
-		SIGNAL SQLSTATE '45000'
-		SET MESSAGE_TEXT = 'Rating does not exist';
-	ELSE
-		DELETE FROM ratings WHERE rating_ID = rating_id_input;
-	END IF;
+    SET @query = CONCAT('SELECT flavor_ID, flavor_name, ice_cream_type, brand_name FROM flavors JOIN chains ON flavors.chain_ID = chains.chain_ID HAVING ', filter_keyword, ' = ?');
+    PREPARE stmt FROM @query;
+    SET @filter_criteria = filter_criteria;
+    EXECUTE stmt USING @filter_criteria;
+    DEALLOCATE PREPARE stmt;
 END $$
 DELIMITER ;
  	
 
 
 
+-- searches company by criteria
+DROP PROCEDURE IF EXISTS show_brands;
+DELIMITER $$ 
+CREATE PROCEDURE show_brands(IN filter_keyword TEXT, filter_criteria TEXT)
+BEGIN
+    SET @query = CONCAT('SELECT DISTINCT brand_name FROM flavors JOIN chains ON chains.chain_ID = flavors.chain_ID WHERE ', filter_keyword, ' = ?');
+    PREPARE stmt FROM @query;
+    SET @filter_criteria = filter_criteria;
+    EXECUTE stmt USING @filter_criteria;
+    DEALLOCATE PREPARE stmt;
+END $$
+DELIMITER ;
 
 
-SELECT flavor_ID, flavor_name, ice_cream_type, brand_name
-FROM flavors 
-JOIN chains ON flavors.chain_ID = chains.chain_ID  ;
-
-
-
-
-
+        
+DROP PROCEDURE IF EXISTS filter_from_flavors;
+DELIMITER $$
+CREATE PROCEDURE filter_from_flavors( IN filter_keyword TEXT)
+BEGIN
+    SET @query = CONCAT('SELECT DISTINCT ', filter_keyword, ' FROM flavors JOIN chains ON flavors.chain_ID = chains.chain_ID');
+    PREPARE stmt FROM @query;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+END $$
+DELIMITER ;
+        
+			
