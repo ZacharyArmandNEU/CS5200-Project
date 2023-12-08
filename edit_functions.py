@@ -278,7 +278,7 @@ def submit_rating(cur, cnx, user_id):
             flavor_to_rate = input("What flavor would you like to rate (enter Flavor ID): ")
         try:
             # ask for components of rating
-            rating_date = input("Enter date of reviews (YYYY-MM-DD): ")
+            rating_date = input("Enter date of review (YYYY-MM-DD): ")
             stars = input("Enter number of stars (1-5): ")
             # check that stars input is valid
             while stars not in ['1', '2', '3', '4', '5']:

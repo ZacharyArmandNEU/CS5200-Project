@@ -116,7 +116,7 @@ def home_screen(cnx):
     user_id = -1
     while True:
         # ask user for their choice
-        user_choice = input("Enter:\n   1 to log in\n   2 to register\n   3 to quit\n")
+        user_choice = input("Enter:\n   1 | to log in\n   2 | to register\n   3 | to quit\n")
         # log in user
         if (user_choice == '1') or (user_choice.lower() == "log in"):
             cur = cnx.cursor()

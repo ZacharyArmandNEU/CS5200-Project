@@ -13,10 +13,13 @@ from home_menu import home_screen, main_menu  # file included with this project
 
 def main():
     try:
+        # get connection parameters from user
+        username = input("Enter your MySQL username: ")
+        pwd = input("Enter your MySQL password: ")
         # use the user provided username and password values to connect to musicarmandz (HW7)
         cnx = pymysql.connect(host='127.0.0.1',
-                              user='root',
-                              password='root',
+                              user=username,
+                              password=pwd,
                               db='new_england_ice_cream',
                               cursorclass=pymysql.cursors.DictCursor)
     except RuntimeError:
@@ -28,7 +31,6 @@ def main():
         print("Failed to connect to database. Exiting program.")
         sys.exit()  # terminate program
     # if connection successful, create cursor object
-
 
     # assign current user id to object for later usage
     current_user_id = home_screen(cnx)
