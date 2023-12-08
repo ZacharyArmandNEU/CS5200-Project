@@ -18,9 +18,8 @@ Included files in zip package:
 Instructions: 
 1) Unpack zip file and download files to chosen directory. Make sure all python files listed above are included. All python files except "ArmandZ.py" are support files. Only "ArmandZ.py" runs the application
 2) Open ArmandZ.sql in database client. Run file to import database dump for `new_england_ice_cream` database.
-3) Determine local database username and password for use in python script. You can find the host name by running the following command in your SQL client: 
+3) Determine local database host, username, and password for use in python script. You can find the host name by running the following command in your SQL client: 
 	SHOW VARIABLES WHERE Variable_name = 'hostname';
-	- Make sure that python script is running from same machine as your MySQL server!
 4) Make sure that python3 instance is installed on your machine with packages listed above installed. Instructions can be found online.
 5) Run python file 'ArmandZ.py'. All examples below are using MacOS Terminal commands, but steps should be the same regardless of OS.
 	a. Make sure that MySQL database connection containing imported `new_england_ice_cream ` is running.
@@ -30,5 +29,5 @@ Instructions:
 		'cd <folder name>'
 	e. Run python file. Individual commands may vary based on your installation, such as "python" or "python3", etc.:
 		'python ArmandZ.py'
-	f. When prompted, enter the correct username and password for your MySQL database connection. 
+	f. When prompted, enter the correct host, username, and password for your MySQL database connection. 
 6) Follow prompts. Application will terminate upon user prompting script to exit.

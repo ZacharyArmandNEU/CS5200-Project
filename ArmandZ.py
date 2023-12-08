@@ -14,10 +14,11 @@ from home_menu import home_screen, main_menu  # file included with this project
 def main():
     try:
         # get connection parameters from user
+        hostname = input("Enter your MySQL host name or address: ")
         username = input("Enter your MySQL username: ")
         pwd = input("Enter your MySQL password: ")
         # use the user provided username and password values to connect to musicarmandz (HW7)
-        cnx = pymysql.connect(host='127.0.0.1',
+        cnx = pymysql.connect(host=hostname,
                               user=username,
                               password=pwd,
                               db='new_england_ice_cream',
