@@ -30,7 +30,6 @@ BEGIN
 END $$ 
 DELIMITER ;
 
-
 -- checks if username already exists\
 -- 1 if already exists, -1 otherwise
 DROP FUNCTION IF EXISTS checker_user_taken;
@@ -49,7 +48,6 @@ BEGIN
     RETURN return_user_exist;
 END $$ 
 DELIMITER ;
-
 
 -- register user
 DROP PROCEDURE IF EXISTS create_user;
@@ -77,7 +75,6 @@ BEGIN
 END $$
 DELIMITER ;
 
-
 -- Update user information
 DROP PROCEDURE IF EXISTS update_user;
 DELIMITER $$
@@ -102,7 +99,6 @@ BEGIN
     END IF;
 END $$
 DELIMITER ;
-
 
 -- Update rating for user
 DROP PROCEDURE IF EXISTS update_ratings;
@@ -129,7 +125,6 @@ BEGIN
     END IF;
 END $$
 DELIMITER ;
-
 
 -- Insert new rating
 DROP PROCEDURE IF EXISTS insert_rating;
@@ -173,7 +168,6 @@ BEGIN
 END $$
 DELIMITER ;
 
-
 -- search for flavors by mixin
 -- accepts a mixin name as input
 -- also accepts 'None' as an input
@@ -211,7 +205,6 @@ BEGIN
 END $$
 DELIMITER ;
 
-
 -- Searches for flavors by base
 -- Every flavor has a base, so no need to test for NULL input
 DROP PROCEDURE IF EXISTS flavors_by_base;
@@ -238,8 +231,6 @@ BEGIN
 END $$
 DELIMITER ;
 
-
-
 -- VIEW AVG RATINGS BY FLAVOR
 DROP PROCEDURE IF EXISTS ratings_by_flavor;
 DELIMITER $$ 
@@ -254,7 +245,6 @@ BEGIN
 END $$
 DELIMITER ;
 
-
 -- VIEW AVG RATINGS BY chain
 DROP PROCEDURE IF EXISTS ratings_by_chain;
 DELIMITER $$ 
@@ -268,7 +258,6 @@ BEGIN
 	GROUP BY brand_name;
 END $$
 DELIMITER ;
-
 
 -- Get user info
 DROP PROCEDURE IF EXISTS user_information;
@@ -285,7 +274,6 @@ BEGIN
 END $$
 DELIMITER ;
 
-
 -- Gets rating IDs for user
 DROP PROCEDURE IF EXISTS rating_id_user;
 DELIMITER $$ 
@@ -299,7 +287,6 @@ BEGIN
 	END IF;
 END $$
 DELIMITER ;
-
 
 -- Gets rating IDs for user
 DROP PROCEDURE IF EXISTS delete_rating;
@@ -316,7 +303,6 @@ BEGIN
 END $$
 DELIMITER ;
 
-
 -- shows all flavors with a filter
 DROP PROCEDURE IF EXISTS show_flavors;
 DELIMITER $$ 
@@ -329,7 +315,6 @@ BEGIN
     DEALLOCATE PREPARE stmt;
 END $$
 DELIMITER ;
- 	
 
 -- searches company by criteria
 DROP PROCEDURE IF EXISTS show_brands;
@@ -344,8 +329,7 @@ BEGIN
 END $$
 DELIMITER ;
 
-
--- 
+-- get distinct flavors input from flavors 
 DROP PROCEDURE IF EXISTS filter_from_flavors;
 DELIMITER $$
 CREATE PROCEDURE filter_from_flavors( IN filter_keyword TEXT)
@@ -356,8 +340,8 @@ BEGIN
     DEALLOCATE PREPARE stmt;
 END $$
 DELIMITER ;
-        
--- 
+
+-- get brand name from inputted chain id
 DROP FUNCTION IF EXISTS brand_names_from_chain;
 DELIMITER $$
 CREATE FUNCTION brand_names_from_chain(input_chain_id INT)
@@ -376,7 +360,7 @@ BEGIN
 END $$ 
 DELIMITER ;
 
--- 
+-- get flavor based on some search criteria
 DROP PROCEDURE IF EXISTS flavor_search_procedure;
 DELIMITER $$ 
 CREATE PROCEDURE flavor_search_procedure(IN search_criteria TEXT, IN search_term TEXT)
@@ -400,8 +384,7 @@ BEGIN
 END $$
 DELIMITER ;
 
-
--- 
+-- get ratings based on some criteria from some table's column
 DROP PROCEDURE IF EXISTS ratings_by_table;
 DELIMITER $$ 
 CREATE PROCEDURE ratings_by_table(IN in_table_name TEXT, IN search_criteria TEXT, IN search_term TEXT)
@@ -417,5 +400,3 @@ BEGIN
 EXECUTE stmt USING @search_term;
 END $$
 DELIMITER ;
-
-
