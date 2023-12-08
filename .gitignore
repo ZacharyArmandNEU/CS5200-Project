@@ -1,0 +1,13 @@
+# ignore ALL .DS_Store files
+*.DS_Store
+
+# ignore ALL files in ANY directory named .idea
+.idea/
+.vscode/
+.__pycache__/
+
+# python files to ignore
+.ipynb_checkpoints/
+/.ipynb_checkpoints/
+*checkpoint.ipynb
+*.pyc
